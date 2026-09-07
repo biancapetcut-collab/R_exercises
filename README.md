@@ -1,7 +1,6 @@
-# Analytical Data Science Programmer — Coding Assessment Submission
+# R Coding Exercise
 
-This repository contains solutions to the Roche PD Data Science coding
-assessment: three required Pharmaverse (SDTM/ADaM/TLG) exercises in R, plus
+This repository contains solutions to R coding exercises: three required Pharmaverse (SDTM/ADaM/TLG) exercises in R, plus
 a bonus Python GenAI exercise.
 
 ## Repository structure
