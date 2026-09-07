@@ -1,0 +1,80 @@
+
+> # =============================================================================
+> # Program:      01_create_ds_domain.R
+> # Purpose:      Create the .... [TRUNCATED] 
+
+> library(pharmaverseraw)
+
+> library(pharmaversesdtm)
+
+> library(dplyr)
+
+> library(stringr)
+
+> # ----------------------------------------------------------------------------
+> # 1. Read in data
+> # --------------------------------------------- .... [TRUNCATED] 
+
+> dm <- pharmaversesdtm::dm
+
+> # ----------------------------------------------------------------------------
+> # 2. Create oak_id_vars
+> #    These are the traceability keys ({sd .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 3. Read in Study Controlled Terminology
+> #    Falls back to the  .... [TRUNCATED] 
+
+> # NOTE on CT matching: {sdtm.oak}'s assign_ct() falls back to toupper(raw
+> # value) whenever no exact (case-sensitive) match is found in `collected .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 5. Map remaining Qualifier / Timing variables
+> # --------------- .... [TRUNCATED] 
+ℹ These terms could not be mapped per the controlled terminology: "Randomized", "Completed", "Study Terminated by Sponsor", "Screen Failure", and "Lost to Follow-Up".
+
+> # ----------------------------------------------------------------------------
+> # 6. Repeat Map Topic and Map Rest
+> #    ds_raw has a single topic .... [TRUNCATED] 
+
+> ds_raw_visit <- ds_raw %>%
++   select(oak_id, INSTANCE) %>%
++   left_join(scheduled_visit_lookup, by = "INSTANCE") %>%
++   mutate(
++     # Unschedul .... [TRUNCATED] 
+
+> ds <- ds %>%
++   left_join(ds_raw_visit, by = "oak_id") %>%
++   mutate(
++     STUDYID = ds_raw$STUDY[match(oak_id, ds_raw$oak_id)],
++     DOMAIN = " ..." ... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 8. Checks
+> # --------------------------------------------------- .... [TRUNCATED] 
+
+> cat("DS domain created successfully:", nrow(ds), "records,",
++     dplyr::n_distinct(ds$USUBJID), "subjects.\n")
+DS domain created successfully: 560 records, 306 subjects.
+
+> print(dplyr::count(ds, DSCAT, DSDECOD))
+# A tibble: 11 × 3
+   DSCAT              DSDECOD                         n
+   <chr>              <chr>                       <int>
+ 1 DISPOSITION EVENT  ADVERSE EVENT                  92
+ 2 DISPOSITION EVENT  COMPLETED                     110
+ 3 DISPOSITION EVENT  DEATH                           3
+ 4 DISPOSITION EVENT  LACK OF EFFICACY                4
+ 5 DISPOSITION EVENT  LOST TO FOLLOW-UP               2
+ 6 DISPOSITION EVENT  PHYSICIAN DECISION              3
+ 7 DISPOSITION EVENT  PROTOCOL VIOLATION              6
+ 8 DISPOSITION EVENT  SCREEN FAILURE                 52
+ 9 DISPOSITION EVENT  STUDY TERMINATED BY SPONSOR     7
+10 DISPOSITION EVENT  WITHDRAWAL BY SUBJECT          27
+11 PROTOCOL MILESTONE RANDOMIZED                    254
+
+> # ----------------------------------------------------------------------------
+> # 9. Save output
+> # ---------------------------------------------- .... [TRUNCATED] 
+
+> write.csv(ds, file = file.path("question_1_sdtm", "ds.csv"), row.names = FALSE, na = "")

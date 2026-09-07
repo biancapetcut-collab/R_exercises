@@ -1,0 +1,167 @@
+
+> # =============================================================================
+> # Program:      create_adsl.R
+> # Purpose:      Create the ADaM AD .... [TRUNCATED] 
+
+> library(dplyr, warn.conflicts = FALSE)
+
+> library(pharmaversesdtm)
+
+> library(lubridate)
+
+> library(stringr)
+
+> # ----------------------------------------------------------------------------
+> # 1. Read in data
+> # --------------------------------------------- .... [TRUNCATED] 
+
+> vs <- pharmaversesdtm::vs
+
+> ex <- pharmaversesdtm::ex
+
+> ds <- pharmaversesdtm::ds
+
+> ae <- pharmaversesdtm::ae
+
+> dm <- convert_blanks_to_na(dm)
+
+> vs <- convert_blanks_to_na(vs)
+
+> ex <- convert_blanks_to_na(ex)
+
+> ds <- convert_blanks_to_na(ds)
+
+> ae <- convert_blanks_to_na(ae)
+
+> # DM is the basis for ADSL
+> adsl <- dm %>%
++   select(-DOMAIN)
+
+> # ----------------------------------------------------------------------------
+> # 2. Treatment variables (planned/actual treatment)
+> # ----------- .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 3. TRTSDTM / TRTSTMF (and TRTEDTM / TRTETMF)
+> #
+> #    Per the e .... [TRUNCATED] 
+
+> adsl <- adsl %>%
++   derive_vars_merged(
++     dataset_add = ex_ext,
++     filter_add = (EXDOSE > 0 | (EXDOSE == 0 & str_detect(EXTRT, "PLACEBO")))  .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 4. ITTFL: "Y" if ARM is populated (i.e. subject was randomized),  .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 5. Disposition variables (End of Study date/status/reason, Random .... [TRUNCATED] 
+
+> format_eosstt <- function(x) {
++   case_when(
++     x %in% c("COMPLETED") ~ "COMPLETED",
++     x %in% c("SCREEN FAILURE") ~ NA_character_,
++     TRU .... [TRUNCATED] 
+
+> adsl <- adsl %>%
++   derive_vars_merged(
++     dataset_add = ds_ext,
++     by_vars = exprs(STUDYID, USUBJID),
++     new_vars = exprs(EOSDT = DSSTDT) .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 6. Birth date and Analysis Age (kept for reference / age grouping .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 7. AGEGR9 / AGEGR9N: Age grouping "<18", "18 - 50", ">50" -> 1, 2 .... [TRUNCATED] 
+
+> adsl <- adsl %>%
++   derive_vars_cat(definition = agegr9_lookup)
+
+> # ----------------------------------------------------------------------------
+> # 8. Death variables (kept for context, needed for full ADSL deriva .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 9. Population flag: SAFFL (Safety Population = received >= 1 vali .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 10. LSTAVLDT: Last known alive date
+> #
+> #     Set to the max of .... [TRUNCATED] 
+
+> adsl <- adsl %>%
++   derive_vars_extreme_event(
++     by_vars = exprs(STUDYID, USUBJID),
++     events = list(
++       event(
++         dataset_name  .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 11. Checks
+> # -------------------------------------------------- .... [TRUNCATED] 
+
+> stopifnot(all(req_vars %in% names(adsl)))
+
+> stopifnot(nrow(adsl) == n_distinct(adsl$USUBJID))
+
+> stopifnot(all(adsl$ITTFL %in% c("Y", "N")))
+
+> stopifnot(all(adsl$AGEGR9N[!is.na(adsl$AGEGR9N)] %in% 1:3))
+
+> cat("ADSL created successfully:", nrow(adsl), "subjects,", ncol(adsl), "variables.\n")
+ADSL created successfully: 306 subjects, 51 variables.
+
+> cat("\nAGEGR9 distribution:\n")
+
+AGEGR9 distribution:
+
+> print(count(adsl, AGEGR9, AGEGR9N))
+# A tibble: 2 × 3
+  AGEGR9  AGEGR9N     n
+  <chr>     <dbl> <int>
+1 18 - 50       2     1
+2 >50           3   305
+
+> cat("\nITTFL distribution:\n")
+
+ITTFL distribution:
+
+> print(count(adsl, ITTFL))
+# A tibble: 1 × 2
+  ITTFL     n
+  <chr> <int>
+1 Y       306
+
+> cat("\nTRTSTMF distribution:\n")
+
+TRTSTMF distribution:
+
+> print(count(adsl, TRTSTMF))
+# A tibble: 2 × 2
+  TRTSTMF     n
+  <chr>   <int>
+1 H         254
+2 <NA>       52
+
+> cat("\nLSTAVLDT source domain (LALVDOM) distribution:\n")
+
+LSTAVLDT source domain (LALVDOM) distribution:
+
+> print(count(adsl, LALVDOM))
+# A tibble: 4 × 2
+  LALVDOM     n
+  <chr>   <int>
+1 ADSL      113
+2 AE          1
+3 DS         72
+4 VS        120
+
+> cat("\nMissing LSTAVLDT:", sum(is.na(adsl$LSTAVLDT)), "\n")
+
+Missing LSTAVLDT: 0 
+
+> # ----------------------------------------------------------------------------
+> # 12. Save output
+> # --------------------------------------------- .... [TRUNCATED] 
+
+> write.csv(adsl, file = file.path("question_2_adam", "adsl.csv"), row.names = FALSE, na = "")

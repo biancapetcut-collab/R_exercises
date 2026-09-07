@@ -1,0 +1,49 @@
+
+> # =============================================================================
+> # Program:      01_create_ae_summary_table.R
+> # Purpose:      Cre .... [TRUNCATED] 
+
+> library(gtsummary)
+
+> library(gt)
+
+> library(pharmaverseadam)
+
+> # ----------------------------------------------------------------------------
+> # 1. Read in data
+> # --------------------------------------------- .... [TRUNCATED] 
+
+> adsl <- pharmaverseadam::adsl
+
+> # Treatment-emergent AE records only
+> teae <- adae %>%
++   filter(TRTEMFL == "Y")
+
+> cat("Number of TEAE records:", nrow(teae), "\n")
+Number of TEAE records: 1122 
+
+> cat("Number of unique subjects with a TEAE:", n_distinct(teae$USUBJID), "\n")
+Number of unique subjects with a TEAE: 217 
+
+> # ----------------------------------------------------------------------------
+> # 2. Build the hierarchical AE summary table
+> #    - Hierarchy: AE .... [TRUNCATED] 
+
+> # ----------------------------------------------------------------------------
+> # 3. Checks
+> # --------------------------------------------------- .... [TRUNCATED] 
+
+> stopifnot(nrow(ae_tbl$table_body) > 0)
+
+> # ----------------------------------------------------------------------------
+> # 4. Render and save output
+> # ----------------------------------- .... [TRUNCATED] 
+
+> gt::gtsave(ae_gt, filename = file.path("question_3_tlg", "ae_summary_table.html"))
+
+> cat("\nAE summary table saved to question_3_tlg/ae_summary_table.html\n")
+
+AE summary table saved to question_3_tlg/ae_summary_table.html
+
+> cat("Table has", nrow(ae_tbl$table_body), "rows.\n")
+Table has 254 rows.

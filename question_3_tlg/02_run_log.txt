@@ -1,0 +1,88 @@
+
+> # =============================================================================
+> # Program:      02_create_visualizations.R
+> # Purpose:      Creat .... [TRUNCATED] 
+
+> library(ggplot2)
+
+> library(forcats)
+
+> library(binom)
+
+> library(pharmaverseadam)
+
+> adae <- pharmaverseadam::adae
+
+> # ----------------------------------------------------------------------------
+> # Plot 1: AE severity distribution by treatment
+> #   Uses all AE r .... [TRUNCATED] 
+
+> plot1 <- ggplot(plot1_data, aes(x = ACTARM, fill = AESEV)) +
++   geom_bar() +
++   labs(
++     title = "AE severity distribution by treatment",
++     .... [TRUNCATED] 
+
+> ggsave(
++   filename = file.path("question_3_tlg", "plot1_ae_severity_by_treatment.png"),
++   plot = plot1, width = 7, height = 5, dpi = 300
++ )
+
+> # ----------------------------------------------------------------------------
+> # Plot 2: Top 10 most frequent AEs (with 95% CI for incidence rates .... [TRUNCATED] 
+
+> ae_counts <- adae %>%
++   distinct(USUBJID, AETERM) %>%
++   count(AETERM, name = "n_subj") %>%
++   arrange(desc(n_subj)) %>%
++   slice_head(n = 10)
+
+> ae_ci <- binom.confint(x = ae_counts$n_subj, n = n_subjects, methods = "exact")
+
+> ae_incidence <- ae_counts %>%
++   mutate(mean = ae_ci$mean, lower = ae_ci$lower, upper = ae_ci$upper)
+
+> plot2 <- ggplot(
++   ae_incidence,
++   aes(x = mean, y = fct_reorder(AETERM, mean))
++ ) +
++   geom_pointrange(aes(xmin = lower, xmax = upper)) +
++   .... [TRUNCATED] 
+
+> ggsave(
++   filename = file.path("question_3_tlg", "plot2_top10_ae_frequency.png"),
++   plot = plot2, width = 7, height = 5, dpi = 300
++ )
+
+> # ----------------------------------------------------------------------------
+> # Checks
+> # ------------------------------------------------------ .... [TRUNCATED] 
+
+> stopifnot(file.exists(file.path("question_3_tlg", "plot2_top10_ae_frequency.png")))
+
+> stopifnot(nrow(ae_incidence) == 10)
+
+> cat("Plot 1 saved: plot1_ae_severity_by_treatment.png\n")
+Plot 1 saved: plot1_ae_severity_by_treatment.png
+
+> cat("Plot 2 saved: plot2_top10_ae_frequency.png\n")
+Plot 2 saved: plot2_top10_ae_frequency.png
+
+> cat("\nTop 10 AEs by subject incidence:\n")
+
+Top 10 AEs by subject incidence:
+
+> print(ae_incidence)
+# A tibble: 10 × 5
+   AETERM                      n_subj   mean  lower upper
+   <chr>                        <int>  <dbl>  <dbl> <dbl>
+ 1 PRURITUS                        57 0.253  0.198  0.315
+ 2 APPLICATION SITE PRURITUS       50 0.222  0.170  0.282
+ 3 ERYTHEMA                        38 0.169  0.122  0.224
+ 4 APPLICATION SITE ERYTHEMA       30 0.133  0.0918 0.185
+ 5 RASH                            29 0.129  0.0880 0.180
+ 6 DIZZINESS                       22 0.0978 0.0623 0.144
+ 7 APPLICATION SITE DERMATITIS     21 0.0933 0.0587 0.139
+ 8 APPLICATION SITE IRRITATION     21 0.0933 0.0587 0.139
+ 9 DIARRHOEA                       18 0.08   0.0481 0.123
+10 SINUS BRADYCARDIA               17 0.0756 0.0446 0.118
